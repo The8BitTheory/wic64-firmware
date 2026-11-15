@@ -16,6 +16,9 @@ namespace WiC64 {
             case WIC64_CMD_TCP_OPEN:
                 return "TCP (open)";
 
+            case WIC64_CMD_TCP_OPEN_TLS:
+                return "TCP (open TLS)";
+
             case WIC64_CMD_TCP_AVAILABLE:
                 return "TCP (available)";
 
@@ -51,7 +54,7 @@ namespace WiC64 {
             goto DONE;
         }
 
-        if (id() == WIC64_CMD_TCP_OPEN) {
+        if (id() == WIC64_CMD_TCP_OPEN || id() == WIC64_CMD_TCP_OPEN_TLS) {
             if (request()->payload()->size() == 0) {
                 error(CLIENT_ERROR, "No URL specified", "!0");
                 goto DONE;
@@ -61,7 +64,7 @@ namespace WiC64 {
             request()->payload()->field(1, ':', portAsString);
             port = atoi(portAsString);
 
-            if (tcpClient->open(host, port)) {
+            if (tcpClient->open(host, port, id() == WIC64_CMD_TCP_OPEN_TLS)) {
                 success("Success", "0");
             } else {
                 error(NETWORK_ERROR, "Could not open connection", "!E");

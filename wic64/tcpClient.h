@@ -4,6 +4,7 @@
 #include "data.h"
 
 #include "WiFiClient.h"
+#include "esp_tls.h"
 
 namespace WiC64 {
     class TcpClient {
@@ -11,6 +12,7 @@ namespace WiC64 {
 
         private:
             WiFiClient m_client;
+            esp_tls_t* m_tls = nullptr;
             static const uint16_t MAX_READ_CHUNK_SIZE = 8192;
 
             // What the last read took from the connection, until the C64
@@ -19,10 +21,12 @@ namespace WiC64 {
             uint8_t* m_unconfirmed;
             int32_t m_unconfirmed_size = 0;
 
+            int socketFd(void) const;
+
         public:
             TcpClient();
             bool connected(void);
-            int open(const char* host, const uint16_t port);
+            int open(const char* host, const uint16_t port, bool useTls = false);
             int32_t available(void);
             int64_t read(uint8_t* data);
             void confirmRead(void);
