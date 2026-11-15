@@ -28,6 +28,7 @@ namespace WiC64 {
     }
     bool TcpClient::connected(void) {
         if (m_unconfirmed_size > 0) return true;
+        if (m_tls != nullptr && m_tls_closed) return false;
         if (m_tls == nullptr && !m_client.connected()) return false;
         if (available() > 0) return true;
         int fd = socketFd();
@@ -43,6 +44,7 @@ namespace WiC64 {
     int TcpClient::open(const char* host, const uint16_t port, bool useTls) {
         m_unconfirmed_size = 0;
         close();
+        m_tls_closed = false;
         bool connected = false;
         if (useTls) {
             m_tls = esp_tls_init();
@@ -102,6 +104,9 @@ namespace WiC64 {
                 } while (esp_timer_get_time() - start < 5000000);
             }
             ESP_LOGI(TAG, "Read %lld bytes", bytesRead);
+            if (m_tls != nullptr && (bytesRead == 0 || (bytesRead < 0 && bytesRead != ESP_TLS_ERR_SSL_WANT_READ && bytesRead != ESP_TLS_ERR_SSL_WANT_WRITE))) {
+                m_tls_closed = true;
+            }
             if (bytesRead > 0) {
                 memcpy(m_unconfirmed, data, bytesRead);
                 m_unconfirmed_size = bytesRead;
@@ -125,7 +130,10 @@ namespace WiC64 {
                     if (!waitForSocket(fd, false, 5000)) break;
                 } else if (result == ESP_TLS_ERR_SSL_WANT_WRITE) {
                     if (!waitForSocket(fd, true, 5000)) break;
-                } else break;
+                } else {
+                    m_tls_closed = true;
+                    break;
+                }
             }
         }
         if ((uint32_t) written < size) {

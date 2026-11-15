@@ -13,6 +13,7 @@ namespace WiC64 {
         private:
             WiFiClient m_client;
             esp_tls_t* m_tls = nullptr;
+            bool m_tls_closed = false;
             static const uint16_t MAX_READ_CHUNK_SIZE = 8192;
 
             // What the last read took from the connection, until the C64
