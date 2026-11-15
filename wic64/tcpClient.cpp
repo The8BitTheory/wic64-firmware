@@ -4,6 +4,7 @@
 #include "esp_crt_bundle.h"
 #include "esp_tls_errors.h"
 #include "esp_timer.h"
+#include <string.h>
 
 namespace WiC64 {
     const char* TcpClient::TAG = "TCPCLIENT";

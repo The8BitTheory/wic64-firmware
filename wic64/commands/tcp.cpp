@@ -64,6 +64,11 @@ namespace WiC64 {
             request()->payload()->field(1, ':', portAsString);
             port = atoi(portAsString);
 
+            if (host[0] == 0 || port == 0) {
+                error(CLIENT_ERROR, "Invalid host or port", "!0");
+                goto DONE;
+            }
+
             if (tcpClient->open(host, port, id() == WIC64_CMD_TCP_OPEN_TLS)) {
                 success("Success", "0");
             } else {
